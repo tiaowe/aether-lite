@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Aether Lite — Discord Clone</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'gg sans', 'Noto Sans', 'Helvetica Neue', sans-serif;
+            background: #202225;
+            color: #dcddde;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Discord Layout */
+        .app {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Servers Bar */
+        .servers-bar {
+            width: 72px;
+            background: #1e1f22;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 0;
+            overflow-y: auto;
+        }
+
+        .server-icon {
+            width: 48px;
+            height: 48px;
+            background: #2b2d31;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 24px;
+            position: relative;
+        }
+
+        .server-icon:hover { border-radius: 16px; background: #5865f2; }
+        .server-icon.active { border-radius: 16px; background: #5865f2; }
+        .server-icon.active::before {
+            content: '';
+            position: absolute;
+            left: -12px;
+            width: 4px;
+            height: 20px;
+            background: white;
+            border-radius: 4px;
+        }
+
+        .add-server {
+            background: #2b2d31;
+            color: #23a55a;
+            font-size: 28px;
+        }
+        .add-server:hover { background: #23a55a; color: white; }
+
+        /* Channels Bar */
+        .channels-bar {
+            width: 240px;
+            background: #2b2d31;
+            display: flex;
+            flex-direction: column;
+            padding: 16px 8px;
+        }
+
+        .server-header {
+            padding: 0 8px 16px;
+            font-weight: 600;
+            font-size: 15px;
+            border-bottom: 1px solid #1e1f22;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .server-header span { cursor: pointer; }
+
+        .channel-group { margin-bottom: 16px; }
+        .channel-group-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #949ba4;
+            padding: 8px 8px 4px;
+            text-transform: uppercase;
+        }
+        .channel-item {
+            padding: 6px 8px;
+            margin: 1px 0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            color: #949ba4;
+        }
+        .channel-item:hover { background: #35373d; color: #dbdee1; }
+        .channel-item.active { background: #404249; color: #dbdee1; }
+
+        /* User Settings Button */
+        .user-settings {
+            margin-top: auto;
+            background: #1e1f22;
+            border-radius: 8px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #5865f2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            overflow: hidden;
+        }
+        .user-name { font-size: 14px; font-weight: 600; }
+
+        /* Main Area */
+        .main-area { flex: 1; display: flex; flex-direction: column; background: #313338; }
+        .chat-header {
+            height: 48px;
+            padding: 0 16px;
+            border-bottom: 1px solid #1e1f22;
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            box-shadow: 0 1px 0 0 #1e1f22;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Message Styles */
+        .message { display: flex; gap: 12px; align-items: flex-start; }
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #5865f2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .message-content { flex: 1; }
+        .message-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+        .message-author { font-weight: 600; color: white; }
+        .message-time { font-size: 10px; color: #949ba4; }
+        .message-text { font-size: 15px; line-height: 1.3; word-break: break-word; }
+
+        /* Input Area */
+        .input-area {
+            padding: 16px;
+            background: #383a40;
+            margin: 0 16px 16px;
+            border-radius: 40px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .input-area input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 15px;
+            outline: none;
+        }
+        .action-btn {
+            background: none;
+            border: none;
+            color: #b5bac1;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 4px;
+            transition: 0.2s;
+        }
+        .action-btn:hover { color: white; }
+
+        /* Voice Panel */
+        .voice-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1e1f22;
+            border-radius: 12px;
+            padding: 8px;
+            display: flex;
+            gap: 8px;
+            z-index: 100;
+            box-shadow: 0 4px 12px black;
+        }
+        .voice-panel video { width: 140px; border-radius: 8px; background: black; }
+
+        /* Voice Members */
+        .voice-members-panel {
+            width: 260px;
+            background: #2b2d31;
+            border-left: 1px solid #1e1f22;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+        }
+        .voice-members-header {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #949ba4;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #1e1f22;
+        }
+        .voice-member {
+            padding: 8px;
+            margin: 4px 0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .speaking-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #23a55a;
+            margin-left: auto;
+        }
+        .speaking { background: #f0b232; animation: pulse 0.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+        button {
+            background: #5865f2;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        button.danger { background: #da373c; }
+        button.success { background: #23a55a; }
+
+        .group-item {
+            background: #1e1f22;
+            border-radius: 8px;
+            padding: 8px;
+            margin: 4px 0;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+        .group-item.active { background: #5865f2; }
+        .group-delete { background: none; color: #da373c; font-size: 12px; padding: 2px 6px; }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e1f22; }
+        ::-webkit-scrollbar-thumb { background: #202225; border-radius: 4px; }
+    </style>
+</head>
+<body>
+<div class="app">
+    <!-- Сервера -->
+    <div class="servers-bar" id="serversBar"></div>
+
+    <!-- Каналы -->
+    <div class="channels-bar" id="channelsBar">
+        <div class="server-header" id="serverHeader">
+            <span id="serverName">Aether</span>
+            <span id="serverMenuBtn" style="cursor:pointer;">▼</span>
+        </div>
+        <div id="channelList"></div>
+        <div class="user-settings" id="userSettingsBtn">
+            <div class="user-avatar" id="userAvatar">😀</div>
+            <div class="user-name" id="userName">Гость</div>
+        </div>
+    </div>
+
+    <!-- Чат -->
+    <div class="main-area">
+        <div class="chat-header" id="chatHeader"># общий</div>
+        <div class="messages-container" id="messagesContainer"></div>
+        <div class="input-area">
+            <input type="text" id="chatInput" placeholder="Сообщение..." disabled>
+            <button class="action-btn" id="fileBtn" disabled>📎</button>
+            <button class="action-btn" id="micToggleBtn" disabled>🎤</button>
+            <button class="action-btn" id="camToggleBtn" disabled>📷</button>
+            <button class="action-btn" id="screenBtn" disabled>🖥️</button>
+        </div>
+    </div>
+
+    <!-- Голосовые участники -->
+    <div class="voice-members-panel" id="voicePanel" style="display: none;">
+        <div class="voice-members-header">ГОЛОСОВОЙ КАНАЛ — <span id="voiceMemberCount">0</span></div>
+        <div id="voiceMembersList" style="flex:1;"></div>
+        <div style="display: flex; gap: 8px; margin-top: 12px;">
+            <button id="joinVoiceBtn" class="success">🔊 Войти</button>
+            <button id="leaveVoiceBtn" class="danger">🔇 Выйти</button>
+        </div>
+    </div>
+
+    <!-- Видеопанель -->
+    <div class="voice-panel" id="videoPanel" style="display: none;">
+        <video id="localVideo" autoplay muted playsinline></video>
+        <button id="closeVideoBtn" style="background:#da373c; padding:4px 8px;">✖️</button>
+    </div>
+</div>
+
+<script>
+    // ========== ПОЛНЫЙ DISCORD КЛОН ==========
+    let localStream = null;
+    let currentServerId = null;
+    let currentChannelId = null;
+    let inVoiceChannel = false;
+    let micEnabled = true;
+    let camEnabled = true;
+    let originalVideoTrack = null;
+    let audioContext = null;
+    let animationId = null;
+
+    // Профиль
+    let userProfile = JSON.parse(localStorage.getItem('aether_profile') || '{"nickname":"Гость","avatar":"😀"}');
+    let servers = JSON.parse(localStorage.getItem('aether_servers') || '[]');
+    let messages = JSON.parse(localStorage.getItem('aether_messages') || '{}');
+    let files = JSON.parse(localStorage.getItem('aether_files') || '{}');
+    let voiceMembers = new Set();
+
+    let currentUserId = localStorage.getItem('aether_userId');
+    if (!currentUserId) {
+        currentUserId = 'u_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        localStorage.setItem('aether_userId', currentUserId);
+    }
+
+    // Восстановление последнего сервера
+    let lastServerId = localStorage.getItem('aether_lastServer');
+
+    // ========== ЗАПРОС РАЗРЕШЕНИЙ ==========
+    async function requestPermissions() {
+        try {
+            addSystemMessage("🎤 Запрос доступа к микрофону и камере...");
+            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            originalVideoTrack = localStream.getVideoTracks()[0];
+            document.getElementById('localVideo').srcObject = localStream;
+            document.getElementById('videoPanel').style.display = 'flex';
+            enableMedia(true);
+            addSystemMessage("✅ Все разрешения получены!");
+            if (lastServerId) {
+                let server = servers.find(s => s.id === lastServerId);
+                if (server) joinServer(lastServerId);
+            }
+            return true;
+        } catch(e) {
+            addSystemMessage("❌ Нет доступа к микрофону/камере. Разрешите в браузере.");
+            return false;
+        }
+    }
+
+    function enableMedia(enabled) {
+        document.getElementById('micToggleBtn').disabled = !enabled;
+        document.getElementById('camToggleBtn').disabled = !enabled;
+        document.getElementById('screenBtn').disabled = !enabled;
+    }
+
+    // ========== UI ФУНКЦИИ ==========
+    function addSystemMessage(text) {
+        const container = document.getElementById('messagesContainer');
+        const div = document.createElement('div');
+        div.className = 'message';
+        div.innerHTML = `<div class="message-content"><div class="message-text" style="color:#a6a7aa;">📢 ${text}</div></div>`;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function addChatMessage(author, text, isOwn = false) {
+        const container = document.getElementById('messagesContainer');
+        const div = document.createElement('div');
+        div.className = 'message';
+        div.innerHTML = `
+            <div class="message-avatar">${userProfile.avatar}</div>
+            <div class="message-content">
+                <div class="message-header">
+                    <span class="message-author">${author}</span>
+                    <span class="message-time">${new Date().toLocaleTimeString()}</span>
+                </div>
+                <div class="message-text">${escapeHtml(text)}</div>
+            </div>
+        `;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function escapeHtml(s) { return s.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+
+    function saveMessage(serverId, channelId, text) {
+        let key = `${serverId}_${channelId}`;
+        if (!messages[key]) messages[key] = [];
+        messages[key].push({ author: userProfile.nickname, text, time: Date.now() });
+        localStorage.setItem('aether_messages', JSON.stringify(messages));
+        if (currentServerId === serverId && currentChannelId === channelId) {
+            addChatMessage(userProfile.nickname, text);
+        }
+    }
+
+    // ========== СЕРВЕРА (ГРУППЫ) ==========
+    function renderServers() {
+        const container = document.getElementById('serversBar');
+        container.innerHTML = '';
+        for (let s of servers) {
+            const div = document.createElement('div');
+            div.className = `server-icon ${currentServerId === s.id ? 'active' : ''}`;
+            div.innerHTML = s.icon || '🌀';
+            div.onclick = () => joinServer(s.id);
+            container.appendChild(div);
+        }
+        const addDiv = document.createElement('div');
+        addDiv.className = 'server-icon add-server';
+        addDiv.innerHTML = '+';
+        addDiv.onclick = createServer;
+        container.appendChild(addDiv);
+    }
+
+    function createServer() {
+        let name = prompt("Название сервера:", "Мой сервер");
+        if (!name) return;
+        let icon = prompt("Эмодзи иконки:", "🌀");
+        let serverId = 's_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        servers.push({
+            id: serverId,
+            name: name,
+            icon: icon || '🌀',
+            channels: [
+                { id: 'general', name: 'общий', type: 'text' },
+                { id: 'voice', name: 'Голосовой', type: 'voice' }
+            ]
+        });
+        localStorage.setItem('aether_servers', JSON.stringify(servers));
+        renderServers();
+        joinServer(serverId);
+        addSystemMessage(`✨ Сервер "${name}" создан!`);
+    }
+
+    async function joinServer(serverId) {
+        if (currentServerId && inVoiceChannel) leaveVoiceChannel();
+        currentServerId = serverId;
+        localStorage.setItem('aether_lastServer', serverId);
+        let server = servers.find(s => s.id === serverId);
+        document.getElementById('serverName').innerText = server.name;
+        renderChannels(server);
+        currentChannelId = 'general';
+        renderChat();
+        document.getElementById('chatInput').disabled = false;
+        document.getElementById('fileBtn').disabled = false;
+        document.getElementById('voicePanel').style.display = 'flex';
+        addSystemMessage(`✅ Вы на сервере ${server.name}`);
+    }
+
+    function renderChannels(server) {
+        const container = document.getElementById('channelList');
+        container.innerHTML = '';
+        const textGroup = document.createElement('div');
+        textGroup.className = 'channel-group';
+        textGroup.innerHTML = '<div class="channel-group-name">ТЕКСТОВЫЕ КАНАЛЫ</div>';
+        const voiceGroup = document.createElement('div');
+        voiceGroup.className = 'channel-group';
+        voiceGroup.innerHTML = '<div class="channel-group-name">ГОЛОСОВЫЕ КАНАЛЫ</div>';
+
+        for (let ch of server.channels) {
+            const item = document.createElement('div');
+            item.className = `channel-item ${currentChannelId === ch.id ? 'active' : ''}`;
+            item.innerHTML = ch.type === 'text' ? `# 💬 ${ch.name}` : `🔊 ${ch.name}`;
+            item.onclick = () => switchChannel(ch.id, ch.type);
+            if (ch.type === 'text') textGroup.appendChild(item);
+            else voiceGroup.appendChild(item);
+        }
+        container.appendChild(textGroup);
+        container.appendChild(voiceGroup);
+    }
+
+    function switchChannel(channelId, type) {
+        currentChannelId = channelId;
+        renderChannels(servers.find(s => s.id === currentServerId));
+        if (type === 'text') {
+            renderChat();
+            document.getElementById('chatHeader').innerHTML = `# ${channelId}`;
+            document.getElementById('chatInput').disabled = false;
+        } else {
+            document.getElementById('chatHeader').innerHTML = `🔊 ${channelId}`;
+            document.getElementById('chatInput').disabled = true;
+        }
+    }
+
+    function renderChat() {
+        const container = document.getElementById('messagesContainer');
+        const key = `${currentServerId}_${currentChannelId}`;
+        container.innerHTML = '';
+        if (messages[key]) {
+            for (let msg of messages[key]) {
+                addChatMessage(msg.author, msg.text);
+            }
+        }
+        if (container.innerHTML === '') {
+            container.innerHTML = '<div style="text-align:center; opacity:0.6; padding:20px;">💬 Начните общение!</div>';
+        }
+    }
+
+    // ========== ГОЛОСОВОЙ КАНАЛ ==========
+    async function joinVoiceChannel() {
+        if (!localStream) { addSystemMessage("❌ Нет доступа к микрофону"); return; }
+        if (!currentServerId) { addSystemMessage("❌ Выберите сервер"); return; }
+        if (inVoiceChannel) return;
+
+        inVoiceChannel = true;
+        voiceMembers.add(currentUserId);
+        updateVoiceUI();
+        addSystemMessage("🔊 Вы в голосовом канале");
+        document.getElementById('joinVoiceBtn').style.background = "#23a55a";
+
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const source = audioContext.createMediaStreamSource(localStream);
+            const analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            source.connect(analyser);
+            if (audioContext.state === 'suspended') await audioContext.resume();
+
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            function detectVoice() {
+                if (!inVoiceChannel) return;
+                analyser.getByteTimeDomainData(dataArray);
+                let max = 0;
+                for (let i = 0; i < dataArray.length; i++) {
+                    let v = Math.abs(dataArray[i] - 128) / 128;
+                    if (v > max) max = v;
+                }
+                const indicator = document.getElementById(`voice_ind_${currentUserId}`);
+                if (indicator) {
+                    if (max > 0.05) indicator.classList.add('speaking');
+                    else indicator.classList.remove('speaking');
+                }
+                requestAnimationFrame(detectVoice);
+            }
+            detectVoice();
+        }
+    }
+
+    function leaveVoiceChannel() {
+        if (!inVoiceChannel) return;
+        inVoiceChannel = false;
+        voiceMembers.delete(currentUserId);
+        updateVoiceUI();
+        addSystemMessage("🔇 Вы покинули голосовой канал");
+        if (audioContext) {
+            audioContext.close();
+            audioContext = null;
+        }
+    }
+
+    function updateVoiceUI() {
+        const container = document.getElementById('voiceMembersList');
+        document.getElementById('voiceMemberCount').innerText = voiceMembers.size;
+        container.innerHTML = '';
+        for (let uid of voiceMembers) {
+            const isMe = uid === currentUserId;
+            const div = document.createElement('div');
+            div.className = 'voice-member';
+            div.innerHTML = `
+                <div class="user-avatar" style="width:32px;height:32px;">${isMe ? userProfile.avatar : '👤'}</div>
+                <div style="flex:1;">${isMe ? userProfile.nickname : uid.slice(0,10)}</div>
+                <div class="speaking-indicator" id="voice_ind_${uid}"></div>
+            `;
+            container.appendChild(div);
+        }
+        if (voiceMembers.size === 0) {
+            container.innerHTML = '<div style="padding:12px; text-align:center; opacity:0.6;">🎤 Никого нет</div>';
+        }
+    }
+
+    // ========== ФАЙЛЫ И ДЕМОНСТРАЦИЯ ==========
+    function sendFile() {
+        if (!currentServerId) return;
+        let input = document.createElement('input');
+        input.type = 'file';
+        input.onchange = (e) => {
+            let file = e.target.files[0];
+            if (!file) return;
+            let ext = file.name.split('.').pop().toLowerCase();
+            if (['exe','msi','bat','cmd'].includes(ext)) {
+                addSystemMessage("⛔ EXE файлы запрещены");
+                return;
+            }
+            if (file.size > 30 * 1024 * 1024) {
+                addSystemMessage("Файл > 30 МБ");
+                return;
+            }
+            let reader = new FileReader();
+            reader.onload = (ev) => {
+                let fileId = Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+                let key = `${currentServerId}_files`;
+                if (!files[key]) files[key] = {};
+                files[key][fileId] = { name: file.name, type: file.type, data: ev.target.result };
+                localStorage.setItem('aether_files', JSON.stringify(files));
+                addSystemMessage(`📎 Файл: ${file.name}`);
+            };
+            reader.readAsDataURL(file);
+        };
+        input.click();
+    }
+
+    async function startScreenShare() {
+        if (!localStream) return;
+        try {
+            let screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+            let screenTrack = screenStream.getVideoTracks()[0];
+            let oldVideo = localStream.getVideoTracks()[0];
+            if (oldVideo) localStream.removeTrack(oldVideo);
+            localStream.addTrack(screenTrack);
+            document.getElementById('localVideo').srcObject = localStream;
+            screenTrack.onended = () => {
+                if (originalVideoTrack) {
+                    localStream.addTrack(originalVideoTrack);
+                    document.getElementById('localVideo').srcObject = localStream;
+                }
+                addSystemMessage("Демонстрация экрана завершена");
+            };
+            addSystemMessage("🖥️ Демонстрация экрана начата");
+        } catch(e) { addSystemMessage("❌ Ошибка демонстрации экрана"); }
+    }
+
+    function sendMessage() {
+        let input = document.getElementById('chatInput');
+        let text = input.value.trim();
+        if (!text || !currentServerId || !currentChannelId) return;
+        saveMessage(currentServerId, currentChannelId, text);
+        input.value = '';
+    }
+
+    function toggleMic() {
+        if (!localStream) return;
+        micEnabled = !micEnabled;
+        localStream.getAudioTracks().forEach(t => t.enabled = micEnabled);
+        document.getElementById('micToggleBtn').innerHTML = micEnabled ? "🎤" : "🔇";
+    }
+
+    function toggleCam() {
+        if (!localStream) return;
+        camEnabled = !camEnabled;
+        localStream.getVideoTracks().forEach(t => t.enabled = camEnabled);
+        document.getElementById('camToggleBtn').innerHTML = camEnabled ? "📷" : "🚫";
+    }
+
+    // ========== ПРОФИЛЬ ==========
+    function editProfile() {
+        let newNick = prompt("Новый никнейм:", userProfile.nickname);
+        if (newNick?.trim()) userProfile.nickname = newNick.trim();
+        let newAvatar = prompt("Эмодзи для аватара:", userProfile.avatar);
+        if (newAvatar?.trim()) userProfile.avatar = newAvatar.trim();
+        localStorage.setItem('aether_profile', JSON.stringify(userProfile));
+        document.getElementById('userName').innerText = userProfile.nickname;
+        document.getElementById('userAvatar').innerHTML = userProfile.avatar;
+        addSystemMessage(`Профиль обновлён: ${userProfile.nickname}`);
+    }
+
+    // ========== ИНИЦИАЛИЗАЦИЯ ==========
+    document.getElementById('userSettingsBtn').onclick = editProfile;
+    document.getElementById('userName').innerText = userProfile.nickname;
+    document.getElementById('userAvatar').innerHTML = userProfile.avatar;
+    document.getElementById('joinVoiceBtn').onclick = joinVoiceChannel;
+    document.getElementById('leaveVoiceBtn').onclick = leaveVoiceChannel;
+    document.getElementById('fileBtn').onclick = sendFile;
+    document.getElementById('micToggleBtn').onclick = toggleMic;
+    document.getElementById('camToggleBtn').onclick = toggleCam;
+    document.getElementById('screenBtn').onclick = startScreenShare;
+    document.getElementById('closeVideoBtn').onclick = () => document.getElementById('videoPanel').style.display = 'none';
+    document.getElementById('chatInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
+
+    renderServers();
+    requestPermissions();
+</script>
+</body>
+</html>
