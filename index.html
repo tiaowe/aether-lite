@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Aether Lite</title>
+    <style>
+        /* ------------------------------------------------------------------
+           DISCORD EXACT COPY - AETHER LITE
+           Полная копия интерфейса Discord
+        ------------------------------------------------------------------ */
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'gg sans', 'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: #202225;
+            color: #dcddde;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Основной контейнер - как в Discord */
+        .discord-app {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+        }
+
+        /* ========== ЛЕВАЯ ПАНЕЛЬ СЕРВЕРОВ (как в Discord) ========== */
+        .servers-panel {
+            width: 72px;
+            background: #1e1f22;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 0;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        /* Иконка сервера */
+        .server-icon {
+            width: 48px;
+            height: 48px;
+            background: #2b2d31;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 24px;
+            color: #dbdee1;
+            position: relative;
+        }
+
+        .server-icon:hover {
+            border-radius: 16px;
+            background: #5865f2;
+        }
+
+        .server-icon.selected {
+            border-radius: 16px;
+            background: #5865f2;
+        }
+
+        .server-icon.selected::before {
+            content: '';
+            position: absolute;
+            left: -12px;
+            width: 4px;
+            height: 20px;
+            background: white;
+            border-radius: 4px;
+        }
+
+        /* Разделитель */
+        .server-divider {
+            width: 32px;
+            height: 2px;
+            background: #2b2d31;
+            margin: 6px 0;
+        }
+
+        /* Кнопка добавления сервера */
+        .add-server {
+            background: #2b2d31;
+            color: #23a55a;
+            font-size: 28px;
+            font-weight: 400;
+        }
+        .add-server:hover {
+            background: #23a55a;
+            color: white;
+        }
+
+        /* ========== ПАНЕЛЬ КАНАЛОВ (как в Discord) ========== */
+        .channels-panel {
+            width: 240px;
+            background: #2b2d31;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        /* Шапка сервера */
+        .server-header {
+            height: 48px;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #1e1f22;
+            box-shadow: 0 1px 0 0 #1e1f22;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 15px;
+            color: white;
+        }
+
+        .server-header:hover {
+            background: #35373d;
+        }
+
+        /* Список каналов */
+        .channels-list {
+            flex: 1;
+            padding: 8px;
+            overflow-y: auto;
+        }
+
+        .channel-category {
+            margin-top: 16px;
+        }
+
+        .category-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #949ba4;
+            padding: 8px 8px 4px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .channel {
+            padding: 6px 8px;
+            margin: 1px 0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            color: #949ba4;
+            transition: 0.1s;
+        }
+
+        .channel:hover {
+            background: #35373d;
+            color: #dbdee1;
+        }
+
+        .channel.selected {
+            background: #404249;
+            color: #dbdee1;
+        }
+
+        /* ========== ОСНОВНАЯ ОБЛАСТЬ ЧАТА ========== */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #313338;
+            min-width: 0;
+        }
+
+        /* Шапка чата */
+        .chat-header {
+            height: 48px;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #1e1f22;
+            box-shadow: 0 1px 0 0 #1e1f22;
+            font-weight: 600;
+            font-size: 15px;
+            gap: 8px;
+        }
+
+        /* Контейнер сообщений */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 16px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Сообщение */
+        .message {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #5865f2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .message-author {
+            font-weight: 500;
+            color: white;
+            font-size: 15px;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #949ba4;
+        }
+
+        .message-text {
+            font-size: 15px;
+            line-height: 1.375;
+            color: #dbdee1;
+            word-break: break-word;
+        }
+
+        /* Панель ввода сообщения */
+        .input-wrapper {
+            padding: 0 16px 24px;
+        }
+
+        .message-input {
+            background: #383a40;
+            border-radius: 40px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .message-input input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .message-input input::placeholder {
+            color: #949ba4;
+        }
+
+        .input-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .input-action {
+            background: none;
+            border: none;
+            color: #b5bac1;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 4px;
+            transition: 0.2s;
+        }
+
+        .input-action:hover {
+            color: white;
+        }
+
+        /* ========== ПАНЕЛЬ УЧАСТНИКОВ (справа) ========== */
+        .members-panel {
+            width: 240px;
+            background: #2b2d31;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            border-left: 1px solid #1e1f22;
+        }
+
+        .members-header {
+            height: 48px;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #949ba4;
+            border-bottom: 1px solid #1e1f22;
+        }
+
+        .members-list {
+            flex: 1;
+            padding: 8px;
+            overflow-y: auto;
+        }
+
+        .member {
+            padding: 8px;
+            margin: 2px 0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .member:hover {
+            background: #35373d;
+        }
+
+        .member-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #5865f2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            overflow: hidden;
+        }
+
+        .member-name {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        /* ========== НИЖНЯЯ ПАНЕЛЬ ПОЛЬЗОВАТЕЛЯ ========== */
+        .user-footer {
+            margin-top: auto;
+            background: #1e1f22;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .user-footer-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #5865f2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            overflow: hidden;
+        }
+
+        .user-footer-info {
+            flex: 1;
+        }
+
+        .user-footer-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .user-footer-status {
+            font-size: 11px;
+            color: #23a55a;
+        }
+
+        .user-footer-icons {
+            display: flex;
+            gap: 4px;
+            color: #949ba4;
+        }
+
+        /* ========== ВСПЛЫВАЮЩИЕ ОКНА ========== */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #313338;
+            border-radius: 8px;
+            width: 440px;
+            padding: 20px;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            background: #1e1f22;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            margin: 16px 0;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* ========== ВИДЕОПАНЕЛЬ ========== */
+        .video-panel {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: #1e1f22;
+            border-radius: 12px;
+            padding: 8px;
+            display: flex;
+            gap: 8px;
+            z-index: 200;
+            box-shadow: 0 4px 12px black;
+        }
+
+        .video-panel video {
+            width: 160px;
+            border-radius: 8px;
+            background: black;
+        }
+
+        /* Аудио индикатор */
+        .speaking-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #23a55a;
+            margin-left: auto;
+        }
+        .speaking {
+            background: #f0b232;
+            animation: pulse 0.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        button {
+            background: #5865f2;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button.danger { background: #da373c; }
+        button.secondary { background: #4e5058; }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e1f22; }
+        ::-webkit-scrollbar-thumb { background: #202225; border-radius: 4px; }
+    </style>
+</head>
+<body>
+<div class="discord-app">
+    <!-- ЛЕВАЯ ПАНЕЛЬ: СЕРВЕРА -->
+    <div class="servers-panel" id="serversPanel"></div>
+
+    <!-- ПАНЕЛЬ КАНАЛОВ -->
+    <div class="channels-panel">
+        <div class="server-header" id="serverHeader">
+            <span id="serverName">Aether Lite</span>
+            <span>▼</span>
+        </div>
+        <div class="channels-list" id="channelsList"></div>
+        <div class="user-footer" id="userFooter">
+            <div class="user-footer-avatar" id="userAvatar">😀</div>
+            <div class="user-footer-info">
+                <div class="user-footer-name" id="userName">Гость</div>
+                <div class="user-footer-status">🟢 В сети</div>
+            </div>
+            <div class="user-footer-icons">
+                <span>🎤</span>
+                <span>🎧</span>
+                <span>⚙️</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ОСНОВНАЯ ОБЛАСТЬ ЧАТА -->
+    <div class="chat-area">
+        <div class="chat-header">
+            <span>#</span>
+            <span id="currentChannelName">общий</span>
+        </div>
+        <div class="messages-container" id="messagesContainer">
+            <div style="text-align:center; padding:40px; opacity:0.6;">💬 Добро пожаловать в Aether Lite!</div>
+        </div>
+        <div class="input-wrapper">
+            <div class="message-input">
+                <input type="text" id="messageInput" placeholder="Сообщение в #общий" disabled>
+                <div class="input-actions">
+                    <button class="input-action" id="fileBtn" disabled>📎</button>
+                    <button class="input-action" id="micBtn" disabled>🎤</button>
+                    <button class="input-action" id="camBtn" disabled>📷</button>
+                    <button class="input-action" id="screenBtn" disabled>🖥️</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ПАНЕЛЬ УЧАСТНИКОВ -->
+    <div class="members-panel" id="membersPanel" style="display: none;">
+        <div class="members-header">
+            <span id="voiceMemberCount">0 участников</span>
+        </div>
+        <div class="members-list" id="voiceMembersList"></div>
+    </div>
+</div>
+
+<!-- ВИДЕОПАНЕЛЬ -->
+<div class="video-panel" id="videoPanel" style="display: none;">
+    <video id="localVideo" autoplay muted playsinline></video>
+    <button id="closeVideoBtn" style="background:#da373c; padding:4px 8px;">✖️</button>
+</div>
+
+<script>
+    // ============================================================
+    // AETHER LITE - ТОЧНАЯ КОПИЯ DISCORD
+    // ============================================================
+
+    // ========== ПЕРЕМЕННЫЕ ==========
+    let localStream = null;
+    let currentServerId = null;
+    let currentChannelId = null;
+    let currentChannelType = 'text';
+    let inVoiceChannel = false;
+    let micEnabled = true;
+    let camEnabled = true;
+    let originalVideoTrack = null;
+    let audioContext = null;
+    let animationId = null;
+    let voiceMembers = new Set();
+
+    // Профиль пользователя
+    let userProfile = JSON.parse(localStorage.getItem('aetherlite_profile') || '{"nickname":"Гость","avatar":"😀"}');
+    
+    // Данные
+    let servers = JSON.parse(localStorage.getItem('aetherlite_servers') || '[]');
+    let messages = JSON.parse(localStorage.getItem('aetherlite_messages') || '{}');
+    let files = JSON.parse(localStorage.getItem('aetherlite_files') || '{}');
+
+    let currentUserId = localStorage.getItem('aetherlite_userId');
+    if (!currentUserId) {
+        currentUserId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
+        localStorage.setItem('aetherlite_userId', currentUserId);
+    }
+
+    let lastServerId = localStorage.getItem('aetherlite_lastServer');
+
+    // ========== ЗАПРОС РАЗРЕШЕНИЙ ==========
+    async function requestPermissions() {
+        try {
+            addSystemMessage("🎤 Запрос доступа к микрофону и камере...");
+            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            originalVideoTrack = localStream.getVideoTracks()[0];
+            document.getElementById('localVideo').srcObject = localStream;
+            document.getElementById('videoPanel').style.display = 'flex';
+            
+            document.getElementById('micBtn').disabled = false;
+            document.getElementById('camBtn').disabled = false;
+            document.getElementById('screenBtn').disabled = false;
+            document.getElementById('fileBtn').disabled = false;
+            document.getElementById('messageInput').disabled = false;
+            
+            addSystemMessage("✅ Все разрешения получены!");
+            
+            if (lastServerId) {
+                let server = servers.find(s => s.id === lastServerId);
+                if (server) selectServer(lastServerId);
+            }
+            return true;
+        } catch(e) {
+            addSystemMessage("❌ Нет доступа к микрофону/камере. Разрешите в браузере.");
+            return false;
+        }
+    }
+
+    // ========== UI ФУНКЦИИ ==========
+    function addSystemMessage(text) {
+        const container = document.getElementById('messagesContainer');
+        const div = document.createElement('div');
+        div.className = 'message';
+        div.innerHTML = `
+            <div class="message-content">
+                <div class="message-text" style="color:#a6a7aa;">📢 ${text}</div>
+            </div>
+        `;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function addChatMessage(author, text) {
+        const container = document.getElementById('messagesContainer');
+        const div = document.createElement('div');
+        div.className = 'message';
+        div.innerHTML = `
+            <div class="message-avatar">${userProfile.avatar}</div>
+            <div class="message-content">
+                <div class="message-header">
+                    <span class="message-author">${escapeHtml(author)}</span>
+                    <span class="message-time">${new Date().toLocaleTimeString()}</span>
+                </div>
+                <div class="message-text">${escapeHtml(text)}</div>
+            </div>
+        `;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function escapeHtml(s) { return s.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+
+    function saveMessage(text) {
+        if (!currentServerId || !currentChannelId) return;
+        const key = `${currentServerId}_${currentChannelId}`;
+        if (!messages[key]) messages[key] = [];
+        messages[key].push({ author: userProfile.nickname, text, time: Date.now() });
+        localStorage.setItem('aetherlite_messages', JSON.stringify(messages));
+        addChatMessage(userProfile.nickname, text);
+    }
+
+    // ========== СЕРВЕРА (DISCORD СТИЛЬ) ==========
+    function renderServers() {
+        const container = document.getElementById('serversPanel');
+        container.innerHTML = '';
+        
+        for (let s of servers) {
+            const div = document.createElement('div');
+            div.className = `server-icon ${currentServerId === s.id ? 'selected' : ''}`;
+            div.innerHTML = s.icon || '🌀';
+            div.onclick = () => selectServer(s.id);
+            container.appendChild(div);
+        }
+        
+        const divider = document.createElement('div');
+        divider.className = 'server-divider';
+        container.appendChild(divider);
+        
+        const addDiv = document.createElement('div');
+        addDiv.className = 'server-icon add-server';
+        addDiv.innerHTML = '+';
+        addDiv.onclick = showCreateServerModal;
+        container.appendChild(addDiv);
+    }
+
+    function showCreateServerModal() {
+        const name = prompt("НАЗВАНИЕ СЕРВЕРА", "Мой сервер");
+        if (!name) return;
+        const icon = prompt("ИКОНКА (эмодзи)", "🌀");
+        const serverId = 's_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        servers.push({
+            id: serverId,
+            name: name,
+            icon: icon || '🌀',
+            channels: [
+                { id: 'general', name: 'общий', type: 'text' },
+                { id: 'voice', name: 'Голосовой', type: 'voice' }
+            ]
+        });
+        localStorage.setItem('aetherlite_servers', JSON.stringify(servers));
+        renderServers();
+        selectServer(serverId);
+        addSystemMessage(`✨ Сервер "${name}" создан!`);
+    }
+
+    function selectServer(serverId) {
+        if (currentServerId && inVoiceChannel) leaveVoiceChannel();
+        currentServerId = serverId;
+        localStorage.setItem('aetherlite_lastServer', serverId);
+        const server = servers.find(s => s.id === serverId);
+        document.getElementById('serverName').innerHTML = server.name;
+        renderChannels(server);
+        currentChannelId = 'general';
+        currentChannelType = 'text';
+        document.getElementById('currentChannelName').innerHTML = 'общий';
+        renderChat();
+        document.getElementById('messageInput').disabled = false;
+        document.getElementById('membersPanel').style.display = 'flex';
+        updateMembersPanel();
+        addSystemMessage(`✅ Вы на сервере ${server.name}`);
+    }
+
+    function renderChannels(server) {
+        const container = document.getElementById('channelsList');
+        container.innerHTML = '';
+        
+        // Текстовые каналы
+        const textCategory = document.createElement('div');
+        textCategory.className = 'channel-category';
+        textCategory.innerHTML = '<div class="category-name">ТЕКСТОВЫЕ КАНАЛЫ</div>';
+        
+        for (let ch of server.channels.filter(c => c.type === 'text')) {
+            const channelDiv = document.createElement('div');
+            channelDiv.className = `channel ${currentChannelId === ch.id ? 'selected' : ''}`;
+            channelDiv.innerHTML = `<span>#</span> <span>${ch.name}</span>`;
+            channelDiv.onclick = () => switchChannel(ch.id, 'text', ch.name);
+            textCategory.appendChild(channelDiv);
+        }
+        container.appendChild(textCategory);
+        
+        // Голосовые каналы
+        const voiceCategory = document.createElement('div');
+        voiceCategory.className = 'channel-category';
+        voiceCategory.innerHTML = '<div class="category-name">ГОЛОСОВЫЕ КАНАЛЫ</div>';
+        
+        for (let ch of server.channels.filter(c => c.type === 'voice')) {
+            const channelDiv = document.createElement('div');
+            channelDiv.className = `channel ${currentChannelId === ch.id ? 'selected' : ''}`;
+            channelDiv.innerHTML = `<span>🔊</span> <span>${ch.name}</span>`;
+            channelDiv.onclick = () => switchChannel(ch.id, 'voice', ch.name);
+            voiceCategory.appendChild(channelDiv);
+        }
+        container.appendChild(voiceCategory);
+    }
+
+    function switchChannel(channelId, type, name) {
+        currentChannelId = channelId;
+        currentChannelType = type;
+        document.getElementById('currentChannelName').innerHTML = name;
+        renderChannels(servers.find(s => s.id === currentServerId));
+        
+        if (type === 'text') {
+            renderChat();
+            document.getElementById('messageInput').disabled = false;
+            document.getElementById('messageInput').placeholder = `Сообщение в #${name}`;
+        } else {
+            document.getElementById('messageInput').disabled = true;
+            document.getElementById('messageInput').placeholder = `🔊 Голосовой канал — нажмите "Войти"`;
+        }
+    }
+
+    function renderChat() {
+        const container = document.getElementById('messagesContainer');
+        const key = `${currentServerId}_${currentChannelId}`;
+        container.innerHTML = '';
+        
+        if (messages[key] && messages[key].length > 0) {
+            for (let msg of messages[key]) {
+                addChatMessage(msg.author, msg.text);
+            }
+        } else {
+            container.innerHTML = '<div style="text-align:center; padding:40px; opacity:0.6;">💬 Добро пожаловать в Aether Lite!</div>';
+        }
+    }
+
+    // ========== ГОЛОСОВОЙ КАНАЛ ==========
+    async function joinVoiceChannel() {
+        if (!localStream) { addSystemMessage("❌ Нет доступа к микрофону"); return; }
+        if (!currentServerId) { addSystemMessage("❌ Выберите сервер"); return; }
+        if (inVoiceChannel) return;
+        
+        inVoiceChannel = true;
+        voiceMembers.add(currentUserId);
+        updateVoiceUI();
+        addSystemMessage("🔊 Вы вошли в голосовой канал");
+        
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const source = audioContext.createMediaStreamSource(localStream);
+            const analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            source.connect(analyser);
+            if (audioContext.state === 'suspended') await audioContext.resume();
+            
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            function detectVoice() {
+                if (!inVoiceChannel) return;
+                analyser.getByteTimeDomainData(dataArray);
+                let max = 0;
+                for (let i = 0; i < dataArray.length; i++) {
+                    let v = Math.abs(dataArray[i] - 128) / 128;
+                    if (v > max) max = v;
+                }
+                const indicator = document.getElementById(`voice_ind_${currentUserId}`);
+                if (indicator) {
+                    if (max > 0.05) indicator.classList.add('speaking');
+                    else indicator.classList.remove('speaking');
+                }
+                requestAnimationFrame(detectVoice);
+            }
+            detectVoice();
+        }
+    }
+
+    function leaveVoiceChannel() {
+        if (!inVoiceChannel) return;
+        inVoiceChannel = false;
+        voiceMembers.delete(currentUserId);
+        updateVoiceUI();
+        addSystemMessage("🔇 Вы вышли из голосового канала");
+        if (audioContext) {
+            audioContext.close();
+            audioContext = null;
+        }
+    }
+
+    function updateVoiceUI() {
+        const container = document.getElementById('voiceMembersList');
+        document.getElementById('voiceMemberCount').innerHTML = `${voiceMembers.size} участников`;
+        container.innerHTML = '';
+        
+        for (let uid of voiceMembers) {
+            const isMe = uid === currentUserId;
+            const div = document.createElement('div');
+            div.className = 'member';
+            div.innerHTML = `
+                <div class="member-avatar" style="width:32px;height:32px;">${isMe ? userProfile.avatar : '👤'}</div>
+                <div class="member-name">${isMe ? userProfile.nickname : uid.slice(0,10)}</div>
+                <div class="speaking-indicator" id="voice_ind_${uid}"></div>
+            `;
+            container.appendChild(div);
+        }
+        
+        if (voiceMembers.size === 0) {
+            container.innerHTML = '<div style="padding:12px; text-align:center; opacity:0.6;">🎤 Никого нет в голосовом канале</div>';
+        }
+    }
+
+    function updateMembersPanel() {
+        const container = document.getElementById('voiceMembersList');
+        if (!container) return;
+        
+        const voiceBtn = document.createElement('div');
+        voiceBtn.style.padding = '12px';
+        voiceBtn.style.marginTop = '12px';
+        voiceBtn.style.display = 'flex';
+        voiceBtn.style.gap = '8px';
+        voiceBtn.innerHTML = `
+            <button id="joinVoiceBtn" class="success" style="background:#23a55a; flex:1;">🔊 Войти</button>
+            <button id="leaveVoiceBtn" class="danger" style="background:#da373c; flex:1;">🔇 Выйти</button>
+        `;
+        container.appendChild(voiceBtn);
+        
+        document.getElementById('joinVoiceBtn')?.addEventListener('click', joinVoiceChannel);
+        document.getElementById('leaveVoiceBtn')?.addEventListener('click', leaveVoiceChannel);
+    }
+
+    // ========== ФАЙЛЫ ==========
+    function sendFile() {
+        if (!currentServerId) return;
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (['exe','msi','bat','cmd','scr'].includes(ext)) {
+                addSystemMessage("⛔ EXE файлы запрещены");
+                return;
+            }
+            if (file.size > 30 * 1024 * 1024) {
+                addSystemMessage("Файл > 30 МБ");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const fileId = Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+                const key = `${currentServerId}_files`;
+                if (!files[key]) files[key] = {};
+                files[key][fileId] = { name: file.name, type: file.type, data: ev.target.result };
+                localStorage.setItem('aetherlite_files', JSON.stringify(files));
+                addSystemMessage(`📎 Файл: ${file.name}`);
+            };
+            reader.readAsDataURL(file);
+        };
+        input.click();
+    }
+
+    // ========== ДЕМОНСТРАЦИЯ ЭКРАНА ==========
+    async function startScreenShare() {
+        if (!localStream) return;
+        try {
+            const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+            const screenTrack = screenStream.getVideoTracks()[0];
+            const oldVideo = localStream.getVideoTracks()[0];
+            if (oldVideo) localStream.removeTrack(oldVideo);
+            localStream.addTrack(screenTrack);
+            document.getElementById('localVideo').srcObject = localStream;
+            screenTrack.onended = () => {
+                if (originalVideoTrack) {
+                    localStream.addTrack(originalVideoTrack);
+                    document.getElementById('localVideo').srcObject = localStream;
+                }
+                addSystemMessage("Демонстрация экрана завершена");
+            };
+            addSystemMessage("🖥️ Демонстрация экрана начата");
+        } catch(e) { addSystemMessage("❌ Ошибка демонстрации экрана"); }
+    }
+
+    // ========== УПРАВЛЕНИЕ МЕДИА ==========
+    function toggleMic() {
+        if (!localStream) return;
+        micEnabled = !micEnabled;
+        localStream.getAudioTracks().forEach(t => t.enabled = micEnabled);
+        document.getElementById('micBtn').innerHTML = micEnabled ? "🎤" : "🔇";
+    }
+
+    function toggleCam() {
+        if (!localStream) return;
+        camEnabled = !camEnabled;
+        localStream.getVideoTracks().forEach(t => t.enabled = camEnabled);
+        document.getElementById('camBtn').innerHTML = camEnabled ? "📷" : "🚫";
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const text = input.value.trim();
+        if (!text || !currentServerId || currentChannelType !== 'text') return;
+        saveMessage(text);
+        input.value = '';
+    }
+
+    // ========== ПРОФИЛЬ ==========
+    function editProfile() {
+        const newNick = prompt("Новый никнейм:", userProfile.nickname);
+        if (newNick?.trim()) userProfile.nickname = newNick.trim();
+        const newAvatar = prompt("Эмодзи для аватара:", userProfile.avatar);
+        if (newAvatar?.trim()) userProfile.avatar = newAvatar.trim();
+        localStorage.setItem('aetherlite_profile', JSON.stringify(userProfile));
+        document.getElementById('userName').innerHTML = userProfile.nickname;
+        document.getElementById('userAvatar').innerHTML = userProfile.avatar;
+        addSystemMessage(`Профиль обновлён: ${userProfile.nickname}`);
+    }
+
+    // ========== ИНИЦИАЛИЗАЦИЯ ==========
+    document.getElementById('userFooter').onclick = editProfile;
+    document.getElementById('userName').innerHTML = userProfile.nickname;
+    document.getElementById('userAvatar').innerHTML = userProfile.avatar;
+    document.getElementById('fileBtn').onclick = sendFile;
+    document.getElementById('micBtn').onclick = toggleMic;
+    document.getElementById('camBtn').onclick = toggleCam;
+    document.getElementById('screenBtn').onclick = startScreenShare;
+    document.getElementById('closeVideoBtn').onclick = () => document.getElementById('videoPanel').style.display = 'none';
+    document.getElementById('messageInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
+
+    renderServers();
+    requestPermissions();
+</script>
+</body>
+</html>
